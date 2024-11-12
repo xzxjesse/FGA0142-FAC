@@ -361,7 +361,7 @@ Replica o bit de sinal a esquerda, na quantidade de vezes que for necessário.
 
 Toda instrução é traduzida para linguagem de máquina, ou seja, são codificadas em binário. Os binários possuem 32 bits e seguem alguns formatos padrão.
 
-1. Formato Tipo-R
+1. **Formato Tipo-R**
 
 |op|rs|rt|rd|shamt|funct|
 |:---:|:---:|:---:|:---:|:---:|:---:|
@@ -378,7 +378,7 @@ Toda instrução é traduzida para linguagem de máquina, ou seja, são codifica
     |aritmetica|$s0|$s1|$t0|0|add|
     |000000|10001|100010|01000|00000|100000|
 
-2. Formato Tipo-I
+2. **Formato Tipo-I**
 
     |op|rs|rt|const. endereço|
     |:---:|:---:|:---:|:---:|
@@ -394,7 +394,11 @@ Toda instrução é traduzida para linguagem de máquina, ou seja, são codifica
     |:---:|:---:|:---:|:---:|
     |lw|$s0|$s2|48|
 
-3. Formato Tipo-J
+3. **Formato Tipo-J**
+
+    |op|endereço|
+    |:---:|:---:|:---:|:---:|
+    |6 bits|26 bits|
 
 ## Operações lógicas
 As principais são:
@@ -405,5 +409,138 @@ As principais são:
 - nor: negação do ou
 - xor: pi exclusivo (bit a bit)
 
-1. Deslocamentos:
-- única exceção do tipo-R
+1. **Deslocamentos:**
+
+    Usam o campo shamb do formato Tipo-R (única exceção do tipo-R).
+    
+    - À esquerda desloca o número a esquerda
+        - Preesnche com zero à direita;
+        - Descarta bits mais significativos;
+        - Deslocar i vezes é multiplicar por 2^i.
+    
+    - Exemplo:
+    ```assembly
+    sll $t0, $s0, 4
+    # $s0 = 0000 1001
+    # $t0 = 1001 0000
+    ```
+
+    - À direita desloca o número a direita
+        - Preesnche com zero à esquerda;
+        - Descarta bits menos significativos;
+        - Deslocar i vezes é dividir por 2^i:
+            - Divisão inteira, bits descartados é o resto.
+    
+    - Exemplo:
+    ```assembly
+    srl $t1, $s0, 2
+    # $s0 = 0010 1001
+    # $t0 = 0000 1010
+    ```
+
+2. **E, ou e negação:**
+
+    ```assembly
+    and $t0, $s0, $s1
+    or  $t0, $s0, $s1
+    ```
+
+    As operações são feitas bit a bit. São particurlamente úteis para aplicar máscaras ao dado. Algumas mais conhecidas são:
+    
+    - **Extrair um bit de um registrador:**
+        
+        Suponha que desejamos extrair o quinto bit menos significativo de $s0:
+
+        $s0 = 0000 ... 0001 0010
+        $t0 = 0000 ... 0001 0000
+
+        ```assembly
+        # and com 1:
+        addi $t0, $zero, 1
+        sll  $t0, $t0, 4      # $t0 é a máscara
+        and  $t0, $t0, $s0    # $t0 é o resultado, $t0 e $s0 são operandos
+        ```
+
+    - **Modificar o valor de um bit:**
+
+    1. Definir o sétimoo bit de $s0 como 1:
+
+        $s0 = 0000 ... 1000 1011
+        $t0 = 0000 ... 0100 0000
+
+        ```assembly
+        addi $t0, $zero, 1
+        sll  $t0, $t0, 6      
+        or   $s0, $t0, $s0   
+        ```
+
+    2. Definir o sexto bit como 0:
+
+        $s0 = 0000 ... 0010 0101
+        $t0 = 1111 ... 1101 1111
+        e   = 0000 ... 0000 0101
+
+    3. Saber se dois números possuem o mesmo sinal:
+
+        $s0 = 0010 0011 ... 1010 0110
+        $s1 = 1011 0110 ... 1111 0100
+
+        ```assembly
+        xor $t0, $s0, $s1
+        # se $t0 < 0, sinais opostos, senão, mesmo sinal.
+        ```
+
+        ```assembly
+        nor $t0, $s0, $zero
+        ```
+
+    4. Carregar a máscara:
+
+        $t0 = 1111 1111 ... 1101 1111
+
+        ```assembly
+        addi $t0, $zero, 1
+        sll $t0, $t0, 5
+        nor $t0, $t0, $zero
+        ```
+
+## Instruções de desvio
+
+Fazem o desvio da execução para uma instrução identificada por um rótulo. Há dois tipos:
+
+1. **Desvio condicional:**
+    #### `beq rs, rt, label`
+    - branch if equal: desvia para a instrução rotulada por label se **rs = rt**.
+
+    #### `bne rs, rt, label`
+    - branch if note equal: desvia para a instrução rotulada por label se **rs =/= rt**.
+
+2. **Desvio incondicional:**
+    #### `j label`
+        - jump: desvia para a instrução rotulada por label.
+
+### Exemplo: Se $t0 tiver o valor 1, imprime "verdadeiro" na tela.
+
+```assembly
+.data
+v: .asciiz "verdadeiro\n"  # mensagem a ser exibida
+
+.text
+
+main: 
+    [mascara para carregar $t0]  # aqui você define o valor de $t0
+    li $t1, 1            # carrega o valor 1 em $t1
+    beq $t0, $t1, imprime # se $t0 e $t1 são iguais, vá para imprime
+    j encerra             # caso contrário, pule para o encerramento
+
+imprime:
+    li $v0, 4            # código de sistema para impressão de string
+    la $a0, v            # carrega o endereço de v em $a0
+    syscall              # executa a impressão
+
+encerra:
+    li $v0, 10           # código de sistema para encerrar o programa
+    syscall
+
+```
+
