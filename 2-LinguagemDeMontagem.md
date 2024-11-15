@@ -515,11 +515,68 @@ Fazem o desvio da execução para uma instrução identificada por um rótulo. H
     #### `bne rs, rt, label`
     - branch if note equal: desvia para a instrução rotulada por label se **rs =/= rt**.
 
+    #### `slt rd, r1, r2`
+    - set on less than: se r1<r2, define rd=1, senão rd=0
+    - essa instrução possui variantes imediatas e sem sinal:
+        - `slti rd, reg, const`
+            - se reg<const, rd=1, senão rd=0
+        - `sltu rd, r1, r2`
+            - faz o mesmo que slt, considerando números sem sinal
+
 2. **Desvio incondicional:**
     #### `j label`
         - jump: desvia para a instrução rotulada por label.
 
-### Exemplo: Se $t0 tiver o valor 1, imprime "verdadeiro" na tela.
+### Exemplos: 
+
+#### Desviar para a instrução rotulada por label:
+- Se $s0 < $s1
+
+    ```assembly
+    slt $t0, $s0, $s1
+    bne $t0, $zero, label # se $t0 =/= 0, então $t0 = 1, logo $s0 < $s1
+    ```
+
+    ```assembly
+    li $t1, 1
+    slt $t0, $s0, $s1
+    beq $t0, $t1, label
+    ```
+
+- Se $s0 > $s1
+    ```assembly
+    slt $t0, $s1, $s0 # se $s0 > $s1, $t0=1
+    bne $t0, $zero, label 
+    ```
+
+- Se $s0 >= $s1
+    - em 2 etapas: verifica um sinal por vez e direciona de acordo com o resultado
+
+    - só se é menor
+        ```assembly
+        slt $t0, $s0, $s1 # se $s0 </ $s1, $s0 >= $s1
+        beq $t0, $zero, label 
+        ```
+
+- Se $s0 <= $s1
+    ```assembly
+    slt $t0, $s1, $s0 
+    beq $t0, $zero, label # se $t0 = 0, então $s0 não é maior que $s1, $s0 <= $s1
+    ```
+
+#### Resultado das instruções
+
+$s0 = 1111 ... 1111 1111
+
+$s1 = 0000 ... 0000 0000
+
+- `slt $t0, $s0, $s1`
+    - $t0 = 1, $s0 < 0, considera sinal
+
+- `sltu $t0, $s0, $s1`
+    - $t0 = 0, $s0 = 2^32 - 1, não considera sinal
+
+#### Se $t0 tiver o valor 1, imprime "verdadeiro" na tela.
 
 ```assembly
 .data
@@ -544,3 +601,73 @@ encerra:
 
 ```
 
+## Laços
+São cindicionais que se repetem enquanto satisfizer uma condição.
+
+### Exemplo:
+```C
+i = 0, a = 0;
+while (i < 10){
+    a = a + 1;
+    i++;
+}
+```
+
+```assembly
+    move $t0, $zero # i
+    move $s0, $zero # a
+
+loop:
+    slti $t1, $t0, 10 # i<10?
+    beq $t1, $zero, exist 
+    add $s0, $s0, $t0 # a=a+i
+    addi $t0, $t0, 1 #i++
+    j loop
+
+exit:...
+```
+
+## Procedimentos
+
+Na chamada a procedimento, temos:
+
+- **Caller**: programa que chama o procedimento
+- **Callee**: procesimento que é chamado
+
+### Exemplo:
+
+```C
+int main (){
+    int a = 10, b = 5;
+    int c;
+
+    c = soma (a, b);
+    printf ("%d", c);
+    return 0;
+}
+
+int soma (int a, int b){
+    return a + b;
+}
+```
+
+Onde:
+- main: Caller
+- soma: Callee
+- `c = soma (a, b);`: Program Counter
+
+### Etapas de chamada a um procedimento:
+
+1. Coloque os parâmetros nos registradores;
+2. Desvie a execução para a primeira linha do procedimento;
+3. Ajuste o armazenamento para o procesimento;
+4. Execute o procedimento;
+5. Salve o resultado no registrador de retorno;
+6. Retorne ao caller.
+
+### Convenções:
+
+1. Um procedimento nunca deve sobrescrever o valor dos registradores $s0 a $s7;
+2. Chamadas aninhadas devem salvar o endereço de retorno;
+3. Argumentos são passados nos registradores $a0 a $s3. Excedentes devem usar a memória;
+4. O valor de retorno deve ser armazenado em $v0.
