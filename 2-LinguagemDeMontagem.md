@@ -634,28 +634,6 @@ Na chamada a procedimento, temos:
 - **Caller**: programa que chama o procedimento
 - **Callee**: procesimento que é chamado
 
-### Exemplo:
-
-```C
-int main (){
-    int a = 10, b = 5;
-    int c;
-
-    c = soma (a, b);
-    printf ("%d", c);
-    return 0;
-}
-
-int soma (int a, int b){
-    return a + b;
-}
-```
-
-Onde:
-- main: Caller
-- soma: Callee
-- `c = soma (a, b);`: Program Counter
-
 ### Etapas de chamada a um procedimento:
 
 1. Coloque os parâmetros nos registradores;
@@ -671,3 +649,151 @@ Onde:
 2. Chamadas aninhadas devem salvar o endereço de retorno;
 3. Argumentos são passados nos registradores $a0 a $s3. Excedentes devem usar a memória;
 4. O valor de retorno deve ser armazenado em $v0.
+
+### Desvio para um procedimento:
+
+`jal rotulo`
+- jump and link: Salva o endereço da próxima instrução em $ra
+
+`jr $ra`
+- jump register: Retorna ao endereço de $ra 
+
+### Memória
+
+1. Pilha
+    - Cresce para baixo
+    - **$sp:** Aponta para o topo da pilha
+    - Deve ser devolvida como foi recebida
+2. Dados dinâmicos
+3. Dados estáticos
+4. Reservados
+
+- Como usar a pilha:
+    - Abre espaço **decrementando** o $sp
+    - Salva os dados
+- Como restaurar a pilha:
+    - Lê os dados da pilha
+    - Restaura o espaço **incrementando** o $sp
+
+### Exemplos:
+
+1. Soma
+
+    ```C
+    int main (){
+        int a = 10, b = 5;
+        int c;
+
+        c = soma (a, b);
+        printf ("%d", c);
+        return 0;
+    }
+
+    int soma (int a, int b){
+        return a + b;
+    }
+    ```
+
+    Onde:
+    - main: Caller
+    - soma: Callee
+    - `c = soma (a, b);`: Program Counter
+
+    ```Assembly
+    li $s0, 10
+    li $s1, 5
+
+    move $a0, $s0
+    move $a1, $s1
+
+    jal soma
+    move $a0, $v0 # $ra
+    li $s0, 5
+    syscall
+    li $v0, 10
+    syscall
+
+    soma:
+        add $v0, $a0, $a1
+        jr $ra
+    ```
+
+2. Media
+
+    ```C
+    int main (){
+        int a = 10, b = 5;
+        int c;
+
+        c = media (a, b);
+        printf ("%d", c);
+        return 0;
+    }
+
+    int media (int a, int b){
+        return soma (a, b)/2;
+    }
+
+    int soma (int a, int b){
+        return a + b;
+    }
+    ```
+
+    ```Assembly
+    li $a0, 10
+    li $a1, 5
+
+    jal media
+    move $a0, $v0 # $ra
+    li $s0, 5
+    syscall
+    li $v0, 10
+    syscall
+
+    media:
+        addi $sp, $sp, -4
+        sw $ra, 0 ($sp)
+        jal soma
+        lw $ra, 0 ($sp)
+        addi $sp, $sp, 4
+        srl $v0, $v0, 1
+        jr $ra
+
+    soma:
+        add $v0, $a0, $a1
+        jr $ra
+    ```
+
+3. Recursiva
+    
+    ```C
+    int fatorial (int n){
+        if (n<1) return 1;
+        else return n*fatorial(n-1);
+    }
+    ```
+
+    ```Assembly
+    fatorial:
+        addi $sp, $sp, -4
+        sw $ra, 0($sp)
+
+        slti $t0, $a0, 1
+        bne $t0, $zero, ret1
+
+        addi $a0, $a0, -1
+        jal fatorial
+
+        addi $a0, $a0, 1
+        mul $v0, $a0, $v0 # retorna n*fatorial(n-1)
+
+        lw $ra, 0($sp)
+        addi $sp, $sp, 4
+
+        jr $ra
+
+    ret1:
+        li $v0, 1
+        addi $sp, $sp, 4
+        jr $ra
+    ```
