@@ -130,20 +130,16 @@ Obs.:
 - **Arquitetura 32 bits:** Inteiros representados com 32 bits.
 1. **Sem sinal:** 
    - Valores de 0 a \(2^{32} - 1\) (0 a 4.294.967.295).
-   - Exemplo: `addu $s0, $s1, $s2`.
 
 2. **Com sinal (Complemento de 2):** 
    - Valores de \(-2^{31}\) a \(2^{31} - 1\) (-2.147.483.648 a 2.147.483.647).
-   - Exemplo: \(-5\) em binário: `1011`.
 
 ## **Formatos de Instruções**
 1. **Tipo-R:** Operações aritméticas e lógicas.
    - Estrutura: `op | rs | rt | rd | shamt | funct`.
-   - Exemplo: `add $t0, $s0, $s1`.
 
 2. **Tipo-I:** Operações com constantes ou acessos à memória.
    - Estrutura: `op | rs | rt | const/offset`.
-   - Exemplo: `lw $s0, 48($s2)`.
 
 3. **Tipo-J:** Instruções de salto.
    - Estrutura: `op | endereço`.
@@ -154,19 +150,22 @@ Obs.:
   - `srl` (direita): Divide por \(2^i\).
 
 - **Operações bit a bit:** `and`, `or`, `xor`, `nor`.
-  - Exemplo: Extrair o 5º bit: `and $t0, $s0, máscara`.
 
 ## **Instruções de Desvio**
 1. **Condicional:** 
-   - Exemplo: `bne $t0, $zero, label`.
+    - `beq`: rs = rt
+    - `bne`: rs =/= rt
+    - `slt`: r1 < r2
+        - `sltu`: slt sem sinal
+        - `slti`: reg < const
 2. **Incondicional:** 
-   - Exemplo: `j label`.
+   - `j`
 
-## **Laços e Procedimentos**
-- **Laços:** Utilizam instruções de desvio para criar repetições.
-  - Exemplo: `while (i < 10)` traduzido em assembly.
-- **Procedimentos:**
-  - Usam `$a0-$a3` para argumentos e `$v0` para retornos.
+## **Laços:** 
+Utilizam instruções de desvio para criar repetições.
+
+## **Procedimentos:**
+Usam `$a0-$a3` para argumentos e `$v0` para retornos.
   - Exemplo: `jal label` para desvio e `jr $ra` para retorno.
 
 ## **Memória**

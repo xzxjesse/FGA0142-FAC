@@ -346,7 +346,7 @@ Há duas formas de representar:
     Para representar inteiros com sinal usamos 2^32 variações distintas, consideramos metade negativa e metade, positiva.
     - (2^32)/2 = 2^31
         - mínimo: -2^31 = -2.147.483.648 
-        - máximo: -2^31 = -2.147.483.647
+        - máximo: 2^31 = 2.147.483.647
 
     O zero é considerado positivo para a computação pois em binário é só 0s e o sinal de positivo é 0.
 
@@ -355,7 +355,7 @@ Replica o bit de sinal a esquerda, na quantidade de vezes que for necessário.
 - Em 4 bits:
     - -5: 1011
 - Em 8 bits:
-    - -5: 11011
+    - -5: 11111011
 
 ## Representação de instruções em linguagem de máquina
 
@@ -363,10 +363,10 @@ Toda instrução é traduzida para linguagem de máquina, ou seja, são codifica
 
 1. **Formato Tipo-R**
 
-|op|rs|rt|rd|shamt|funct|
-|:---:|:---:|:---:|:---:|:---:|:---:|
-|6 bits|5 bits|5 bits|5 bits|5bits|6bits|
-|Código da operação|É o primero registrador operando|É o segundo registrador operando|É o registrador de destino|É o tamanho do deslocamento|É o código da função|
+    |op|rs|rt|rd|shamt|funct|
+    |:---:|:---:|:---:|:---:|:---:|:---:|
+    |6 bits|5 bits|5 bits|5 bits|5bits|6bits|
+    |Código da operação|É o primero registrador operando|É o segundo registrador operando|É o registrador de destino|É o tamanho do deslocamento|É o código da função|
 
 - Exemplo:
     ```assembly
@@ -397,7 +397,7 @@ Toda instrução é traduzida para linguagem de máquina, ou seja, são codifica
 3. **Formato Tipo-J**
 
     |op|endereço|
-    |:---:|:---:|:---:|:---:|
+    |:---:|:---:|
     |6 bits|26 bits|
 
 ## Operações lógicas
@@ -418,12 +418,12 @@ As principais são:
         - Descarta bits mais significativos;
         - Deslocar i vezes é multiplicar por 2^i.
     
-    - Exemplo:
-    ```assembly
-    sll $t0, $s0, 4
-    # $s0 = 0000 1001
-    # $t0 = 1001 0000
-    ```
+        - Exemplo:
+        ```assembly
+        sll $t0, $s0, 4
+        # $s0 = 0000 1001
+        # $t0 = 1001 0000
+        ```
 
     - À direita desloca o número a direita
         - Preesnche com zero à esquerda;
@@ -431,12 +431,12 @@ As principais são:
         - Deslocar i vezes é dividir por 2^i:
             - Divisão inteira, bits descartados é o resto.
     
-    - Exemplo:
-    ```assembly
-    srl $t1, $s0, 2
-    # $s0 = 0010 1001
-    # $t0 = 0000 1010
-    ```
+        - Exemplo:
+        ```assembly
+        srl $t1, $s0, 2
+        # $s0 = 0010 1001
+        # $t0 = 0000 1010
+        ```
 
 2. **E, ou e negação:**
 
