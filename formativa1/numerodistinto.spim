@@ -1,0 +1,35 @@
+.text
+.globl elemDistintos
+
+elemDistintos:
+    move $t0, $a0
+    move $t1, $a1
+    li $t2, 0
+
+    beq $t1, $zero, fim
+
+    lw $t3, 0($t0)
+    addi $t2, $t2, 1
+
+    addi $t0, $t0, 4
+    addi $t1, $t1, -1
+
+loop:
+    beq $t1, $zero, fim
+
+    lw $t4, 0($t0)
+    bne $t3, $t4, novo
+    j continuar
+
+novo:
+    addi $t2, $t2, 1
+    move $t3, $t4
+
+continuar:
+    addi $t0, $t0, 4
+    addi $t1, $t1, -1
+    j loop
+
+fim:
+    move $v0, $t2
+    jr $ra

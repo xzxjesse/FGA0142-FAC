@@ -1,0 +1,50 @@
+    .data
+n: .asciiz " "
+i: .asciiz " "
+resultado_msg: .asciiz " "
+
+    .text
+    .globl main
+
+main:
+    # Solicitar valor de n
+    li   $v0, 4
+    la   $a0, n
+    syscall
+
+    li   $v0, 5
+    syscall
+    move $t1, $v0   # Armazena o valor de n em $t1
+
+    # Solicitar valor de i
+    li   $v0, 4
+    la   $a0, i
+    syscall
+
+    li   $v0, 5
+    syscall
+    move $t2, $v0   # Armazena o valor de i em $t2
+
+    # Calcular 2^i
+    li   $t3, 1
+    sll  $t3, $t3, $t2
+
+    # Calcular 2^i - 1
+    sub  $t3, $t3, 1
+
+    # Calcular o resto de n por 2^i
+    and  $t4, $t1, $t3
+
+    # Imprimir "Resultado: "
+    li   $v0, 4
+    la   $a0, resultado_msg
+    syscall
+
+    # Imprimir o resultado
+    li   $v0, 1
+    move $a0, $t4
+    syscall
+
+    # Finalizar o programa
+    li   $v0, 10
+    syscall

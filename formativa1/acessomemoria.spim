@@ -1,0 +1,23 @@
+li	$v0, 5
+syscall
+move $t0, $v0
+
+li $v0, 5
+syscall
+move $t1, $v0
+
+li $v0, 5
+syscall
+move $t2, $v0
+
+# calculando o endereco
+mul $t3, $t1, 4
+add $t3, $s0, $t3     
+lw $t4, 0($t3) 
+
+# calculando o A[i] = A[j] + N
+add $t4, $t4, $t2    
+
+mul $t3, $t0, 4
+add $t3, $s0, $t3
+sw $t4, 0($t3)

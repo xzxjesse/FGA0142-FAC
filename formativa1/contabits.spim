@@ -1,0 +1,8 @@
+contaBits:
+    move $v0, $zero         
+contaBits_loop:
+    andi $t0, $a0, 1        
+    add $v0, $v0, $t0       
+    srl $a0, $a0, 1         
+    bnez $a0, contaBits_loop 
+    jr $ra

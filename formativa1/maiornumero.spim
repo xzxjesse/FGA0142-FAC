@@ -1,0 +1,40 @@
+.data
+n:      .word 0
+maior:  .word 0
+
+.text
+.globl main
+
+main:
+    li $v0, 5
+    syscall
+    sw $v0, n
+
+    li $t0, -2147483648
+    sw $t0, maior
+
+    lw $t1, n
+    move $t2, $zero
+
+loop:
+    beq $t2, $t1, fim
+
+    li $v0, 5
+    syscall
+    move $t3, $v0
+
+    lw $t4, maior
+    ble $t3, $t4, continuar
+    sw $t3, maior
+
+continuar:
+    addi $t2, $t2, 1
+    j loop
+
+fim:
+    lw $a0, maior
+    li $v0, 1
+    syscall
+
+    li $v0, 10
+    syscall

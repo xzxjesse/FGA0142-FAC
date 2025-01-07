@@ -638,7 +638,7 @@ Na chamada a procedimento, temos:
 
 1. Coloque os parâmetros nos registradores;
 2. Desvie a execução para a primeira linha do procedimento;
-3. Ajuste o armazenamento para o procesimento;
+3. Ajuste o armazenamento para o procedimento;
 4. Execute o procedimento;
 5. Salve o resultado no registrador de retorno;
 6. Retorne ao caller.
