@@ -54,7 +54,7 @@ Sistema numérico posicional, o valor i-ésimo dígito vale Di x base^i, i=0, 1,
         -0 = 1 0000 0000 -> overflow
         ```
 
-    - Obs.: O complement a dois de um número X numa arquitetura de n bits vale 2^n - x em sua representação sem sinal - por isso "complemento a 2" (na base 2).
+    - Obs.: O complemento a dois de um número X numa arquitetura de n bits vale 2^n - x em sua representação sem sinal - por isso "complemento a 2" (na base 2).
 
         ```
         +6 = 0110
@@ -111,7 +111,62 @@ slt $t3, $t3, $zero
 bne $t3, $zero, overflow
 ```
 
-#### Números com sinal
+##### Explicação do código
+
+**Linha 1:**
+```assembly
+addu $t0, $t1, $t2
+```
+- **Descrição:** Realiza a soma de \( t1 \) e \( t2 \), armazenando o resultado em \( t0 \).
+- **Detalhe:** A instrução `addu` (add unsigned) não detecta ou gera exceção de overflow, mesmo para números com sinal.
+
+**Linha 2:**
+```assembly
+xor $t3, $t1, $t2
+```
+- **Descrição:** Realiza a operação lógica XOR entre \( t1 \) e \( t2 \), armazenando o resultado em \( t3 \).
+- **Propósito:** Determina se \( t1 \) e \( t2 \) têm sinais diferentes:
+  - \( XOR \) resulta em \( 1 \) no bit mais significativo (MSB) se os sinais forem diferentes.
+  - Se \( t1 \) e \( t2 \) têm o mesmo sinal, \( MSB = 0 \).
+
+**Linha 3:**
+```assembly
+slt $t3, $t3, $zero
+```
+- **Descrição:** Verifica se \( t3 \) é menor que zero.  
+  - A instrução `slt` (set on less than) define \( t3 = 1 \) se \( t3 < 0 \); caso contrário, \( t3 = 0 \).
+- **Propósito:** Identifica se \( t3 \) tem o bit mais significativo igual a \( 1 \), indicando que \( t1 \) e \( t2 \) têm sinais diferentes.
+
+**Linha 4:**
+```assembly
+bne $t3, $zero, sem_overflow
+```
+- **Descrição:** Se \( t3 =/= 0 \), os sinais de \( t1 \) e \( t2 \) são diferentes, e **não pode haver overflow**. A execução salta para o rótulo `sem_overflow`.
+
+**Linha 5:**
+```assembly
+xor $t3, $t0, $t1
+```
+- **Descrição:** Realiza \( XOR \) entre \( t0 \) (resultado da soma) e \( t1 \), armazenando o resultado em \( t3 \).
+- **Propósito:** Verifica se o sinal do resultado \( t0 \) é diferente do sinal de \( t1 \).  
+  - Se o MSB de \( t3 = 1 \), o sinal do resultado mudou, indicando overflow.
+
+**Linha 6:**
+```assembly
+slt $t3, $t3, $zero
+```
+- **Descrição:** Verifica se \( t3 \) é menor que zero.
+- **Propósito:** Determina se houve alteração no sinal, o que indicaria overflow.
+
+
+**Linha 7:**
+```assembly
+bne $t3, $zero, overflow
+```
+- **Descrição:** Se \( t3 =/= 0 \), houve alteração no sinal do resultado, indicando **overflow**. A execução salta para o rótulo `overflow`.
+
+
+#### Números sem sinal
 
 ```Assembly
 addu $t0, $t1, $t2
@@ -125,6 +180,37 @@ nor $t3, $t1, $zero
 sltu $t3, $t3, $t2
 bne $t3, $zero, overflow
 ```
+
+##### Explicação do código
+
+**Linha 1:**
+```assembly
+addu $t0, $t1, $t2
+```
+- **Descrição:** Soma \( t1 \) e \( t2 \), armazenando o resultado em \( t0 \).
+- **Detalhe:** Usado para números sem sinal, onde não há controle automático de overflow.
+
+**Linha 2:**
+```assembly
+nor $t3, $t1, $zero
+```
+- **Descrição:** Realiza a operação NOR entre \( t1 \) e \( zero \), armazenando o resultado em \( t3 \).
+- **Propósito:** Calcula o complemento a dois de \( t1 \) de forma indireta:
+  - \( t3 =~ t1 \) (inversão dos bits de \( t1 \)).
+
+**Linha 3:**
+```assembly
+sltu $t3, $t3, $t2
+```
+- **Descrição:** Compara \( t3 \) (valor invertido de \( t1 \)) com \( t2 \) usando comparação sem sinal (`sltu`).
+  - Define \( t3 = 1 \) se \( t3 < t2 \); caso contrário, \( t3 = 0 \).
+- **Propósito:** Determina se o complemento a dois de \( t1 \) é menor que \( t2 \), o que indicaria overflow.
+
+**Linha 4:**
+```assembly
+bne $t3, $zero, overflow
+```
+- **Descrição:** Se \( t3 =/= 0 \), houve **overflow**. A execução salta para o rótulo `overflow`.
 
 ## Algoritmo de multiplicação
 

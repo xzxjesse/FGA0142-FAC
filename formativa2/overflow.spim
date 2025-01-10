@@ -1,0 +1,53 @@
+.data
+overflow_msg: .asciiz "overflow\n"
+
+.text
+.globl main
+
+main:
+    li $v0, 5
+    syscall
+    move $t0, $v0
+
+    li $v0, 5
+    syscall
+    move $t1, $v0
+
+    li $v0, 5
+    syscall
+    move $t2, $v0
+
+    beq $t0, 0, sum_unsigned
+    j sum_signed
+
+sum_unsigned:
+    addu $t3, $t1, $t2
+    sltu $t4, $t3, $t1
+    bne $t4, $zero, print_overflow
+    j print_result
+
+sum_signed:
+    addu $t3, $t1, $t2
+    xor $t4, $t1, $t2
+    slt $t4, $t4, $zero
+    bne $t4, $zero, print_result
+
+    xor $t4, $t3, $t1
+    slt $t4, $t4, $zero
+    bne $t4, $zero, print_overflow
+    j print_result
+
+print_overflow:
+    li $v0, 4
+    la $a0, overflow_msg
+    syscall
+    j exit
+
+print_result:
+    li $v0, 1
+    move $a0, $t3
+    syscall
+
+exit:
+    li $v0, 10
+    syscall
